@@ -1,6 +1,6 @@
-# Theadpool: A lightweight thread pool implementation with inline profiler
+# A lightweight thread pool implementation with inline profiler
 
-Currently, the implementation:
+Currently, this thread pool implementation
  * Works with pthreads only, but API is intentionally opaque to allow
    other implementations
  * Starts all threads on creation of the thread pool.
@@ -42,9 +42,7 @@ ThreadTracer is an inline profiler that is special in the following ways:
 #include "threadtracer.h"
 
 // Each thread that will be generating profiling events needs to be made known to the system.
-// If you sign in with threadid TT_CALLING_THREAD, the threadid of calling thread will be used.
-
-tt_signin(TT_CALLING_THREAD, "mainthread");
+TT_ENTRY();
 
 // C Programs need to wrap sections of code with a begin and end macro.
 TT_BEGIN("simulation");
@@ -52,7 +50,7 @@ simulate( dt );
 TT_END("simulation");
 
 // When you are done profiling, typically at program end, or earlier, you can generate the profile report.
-tt_report(NULL);
+TT_REPORT();
 ```
 
 Add threadtracer.c to your project, and compile your sources with
