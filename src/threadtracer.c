@@ -14,7 +14,7 @@
 #define MAXSAMPLES 64 * 1024  //!< How many samples can we record for a thread?
 
 //! How many threads are we currently tracing?
-static int numthreads = 0;
+static _Atomic int numthreads = 0;
 
 //! When (in wallclock time) did we start tracing?
 static int64_t walloffset = 0;
@@ -49,10 +49,13 @@ static const char *threadnames[MAXTHREADS];
 //! The thread-ids.
 static pthread_t threadids[MAXTHREADS];
 
+static __thread int tidx;
+
 //! Before tracing, a thread should make itself known to ThreadTracer.
 int tt_signin(const char *threadname)
 {
-    if (numthreads == 0) {
+    int slot = numthreads++;
+    if (slot == 0) {
         struct timespec wt, ct;
         clock_gettime(CLOCK_MONOTONIC, &wt);
         clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ct);
@@ -73,12 +76,14 @@ int tt_signin(const char *threadname)
         }
         isrecording = 1;
     }
-    if (numthreads == MAXTHREADS)
+    if (slot >= MAXTHREADS) {
+        numthreads = MAXTHREADS;
         return -1;
-    int slot = numthreads++;
+    }
     threadnames[slot] = threadname;
     threadids[slot] = pthread_self();
     samplecounts[slot] = 0;
+    tidx = slot;
     return slot;
 }
 
@@ -100,8 +105,6 @@ int tt_stamp(const char *cat, const char *tag, const char *phase)
                     "record.\n");
         return -1;
     }
-
-    const pthread_t tid = pthread_self();
 
     struct timespec wt, ct;
     clock_gettime(CLOCK_MONOTONIC, &wt);
@@ -125,32 +128,29 @@ int tt_stamp(const char *cat, const char *tag, const char *phase)
     if (wall_nsec < wallcutoff)
         return -1;
 
-    for (int i = 0; i < numthreads; ++i)
-        if (threadids[i] == tid) {
-            const int cnt = samplecounts[i];
-            if (cnt >= MAXSAMPLES) {
-                isrecording = 0;
-                fprintf(stderr,
-                        "ThreadTracer: Stopped recording samples. Limit(%d) "
-                        "reached.\n",
-                        MAXSAMPLES);
-                return -1;
-            }
-            sample_t *sample = samples[i] + samplecounts[i];
-            sample->wall_time = wall_nsec - walloffset;
-            sample->cpu_time = cpu_nsec;
-            sample->num_preemptive_switch = ru.ru_nivcsw;
-            sample->num_voluntary_switch = ru.ru_nvcsw;
-            sample->tag = tag;
-            sample->cat = cat;
-            sample->phase = phase;
-            return samplecounts[i]++;
-        }
+    const int cnt = samplecounts[tidx];
+    if (cnt >= MAXSAMPLES) {
+        isrecording = 0;
+        fprintf(stderr,
+                "ThreadTracer: Stopped recording samples. Limit(%d) "
+                "reached.\n",
+                MAXSAMPLES);
+        return -1;
+    }
+    sample_t *sample = samples[tidx] + samplecounts[tidx];
+    sample->wall_time = wall_nsec - walloffset;
+    sample->cpu_time = cpu_nsec;
+    sample->num_preemptive_switch = ru.ru_nivcsw;
+    sample->num_voluntary_switch = ru.ru_nvcsw;
+    sample->tag = tag;
+    sample->cat = cat;
+    sample->phase = phase;
+    return samplecounts[tidx]++;
 
     fprintf(stderr,
             "ThreadTracer: Thread(%" PRIu64
             ") was not signed in before recording the first time stamp.\n",
-            (uint64_t) tid);
+            (uint64_t) threadids[tidx]);
     fprintf(stderr,
             "ThreadTracer: Recording has stopped due to sign-in error.\n");
     isrecording = 0;
