@@ -59,7 +59,7 @@ the `getrusage()` call. Thus, it is only valid to Linux and FreeBSD.
 
 ### Viewing the report
 
-Start the Google Chrome browser, and in the URL bar, type ```chrome://tracing``` and then load the genererated threadtracer.json file.
+Start the Google Chrome browser, and in the URL bar, type `chrome://tracing` and then load the genererated `threadtracer*.json` file.
 
 ![screenshot](https://pbs.twimg.com/media/DNZe7tRVwAAm2_-.png)
 
@@ -71,7 +71,7 @@ The shading of the time slices shows the duty cycle: how much of the time was sp
 
 To avoid recording samples right after launch, you can skip the first seconds of recording with an environment variable. To skip the first five seconds, do:
 
-```
+```shell
 $ THREADTRACERSKIP=5 ./foo
 ThreadTracer: clock resolution: 1 nsec.
 ThreadTracer: skipping the first 5 seconds before recording.
