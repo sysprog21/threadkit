@@ -37,8 +37,8 @@ int main()
     for (int i = 0; i < SIZE; i++)
         assert(threadpool_add(pool, &dummy_task, NULL) == 0);
     assert(threadpool_destroy(pool, false) == 0);
-    printf("%d\n", left);
     assert(left > 0);
+    TT_REPORT();
 
     /* Testing graceful shutdown */
     left = SIZE;
@@ -47,9 +47,9 @@ int main()
         assert(threadpool_add(pool, &dummy_task, NULL) == 0);
     assert(threadpool_destroy(pool, true) == 0);
     assert(left == 0);
+    TT_REPORT();
 
     pthread_mutex_destroy(&lock);
 
-    TT_REPORT();
     return 0;
 }
