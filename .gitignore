@@ -1,0 +1,14 @@
+# Prerequisites
+*.o.d
+
+# Object files
+*.o
+
+# Executables
+tests/test-threadpool
+tests/test-heavy
+tests/test-shutdown
+
+# Others
+threadtracer.*.json
+*.ok
