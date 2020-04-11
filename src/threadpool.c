@@ -1,8 +1,9 @@
+#include "threadpool.h"
+
 #include <pthread.h>
 #include <stdint.h>
 
 #include "logger.h"
-#include "threadpool.h"
 
 typedef struct task_s {
     void (*func)(void *);

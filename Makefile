@@ -1,4 +1,6 @@
 TESTS = \
+    skinny-mutex \
+    tasklet \
     threadpool \
     heavy \
     shutdown
@@ -36,6 +38,9 @@ $(TESTS_OK): %.ok: %
 	$(Q)$(CC) -o $@ $(CFLAGS) -c -MMD -MF $@.d $<
 
 OBJS = \
+       src/skinny_mutex.o \
+       src/thread.o \
+       src/tasklet.o \
        src/threadpool.o \
        src/threadtracer.o
 deps += $(OBJS:%.o=%.o.d)

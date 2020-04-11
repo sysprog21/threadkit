@@ -2,6 +2,10 @@
 
 CPPCHECK_suppress="--suppress=missingInclude \
                    --suppress=unusedFunction:src/threadtracer.c \
+                   --suppress=redundantAssignment:src/skinny_mutex.c \
+                   --suppress=unusedFunction:src/tasklet.c \
+                   --suppress=unusedFunction:src/thread.c \		   
+                   --suppress=unusedFunction:src/skinny_mutex.c \		   
                    --inline-suppr"
 CPPCHECK_OPTS="-I. --enable=all --error-exitcode=1 --force $CPPCHECK_suppress ."
 
