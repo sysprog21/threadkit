@@ -82,6 +82,13 @@ int tt_signin(const char *threadname)
     return slot;
 }
 
+#if defined(__APPLE__)
+static int getrusage_thread(struct rusage *rusage)
+{
+    /* FIXME: need correct implementation for macOS */
+    return getrusage(RUSAGE_SELF, rusage);
+}
+#endif
 
 //! Record a timestamp.
 int tt_stamp(const char *cat, const char *tag, const char *phase)
@@ -101,7 +108,11 @@ int tt_stamp(const char *cat, const char *tag, const char *phase)
     clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ct);
     struct rusage ru;
     int rv;
+#if defined(__APPLE__)
+    rv = getrusage_thread(&ru);
+#else
     rv = getrusage(RUSAGE_THREAD, &ru);
+#endif
     if (rv < 0) {
         isrecording = 0;
         fprintf(stderr, "ThreadTracer: rusage() failed. Stopped Recording.\n");
