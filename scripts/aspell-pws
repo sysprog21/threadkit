@@ -187,3 +187,5 @@ sem
 cond
 condvar
 threadpool
+skinny
+tasklet
